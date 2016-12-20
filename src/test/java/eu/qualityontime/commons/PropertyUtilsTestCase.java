@@ -1651,6 +1651,14 @@ public class PropertyUtilsTestCase extends TestCase {
 		} catch (final Throwable t) {
 			fail("Threw " + t + " instead of IllegalArgumentException 1");
 		}
+		try {
+			propertyUtils.getSimpleProperty(null, "@stringProperty");
+			fail("Should throw IllegalArgumentException 1");
+		} catch (final IllegalArgumentException e) {
+			// Expected response
+		} catch (final Throwable t) {
+			fail("Threw " + t + " instead of IllegalArgumentException 1");
+		}
 
 		try {
 			propertyUtils.getSimpleProperty(bean, null);
@@ -1670,6 +1678,23 @@ public class PropertyUtilsTestCase extends TestCase {
 
 		try {
 			final Object value = propertyUtils.getSimpleProperty(bean, "booleanProperty");
+			assertNotNull("Got a value", value);
+			assertTrue("Got correct type", value instanceof Boolean);
+			assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
+		} catch (final IllegalAccessException e) {
+			fail("IllegalAccessException");
+		} catch (final IllegalArgumentException e) {
+			fail("IllegalArgumentException");
+		} catch (final InvocationTargetException e) {
+			fail("InvocationTargetException");
+		} catch (final NoSuchMethodException e) {
+			fail("NoSuchMethodException");
+		}
+	}
+
+	public void testGetSimpleBoolean_field() {
+		try {
+			final Object value = propertyUtils.getSimpleProperty(bean, "@booleanProperty");
 			assertNotNull("Got a value", value);
 			assertTrue("Got correct type", value instanceof Boolean);
 			assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
