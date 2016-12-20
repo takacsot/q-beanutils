@@ -1976,13 +1976,6 @@ public class PropertyUtilsTestCase extends TestCase {
 			fail("Property " + property + " isReadable Threw exception: " + t);
 		}
 
-		try {
-			property = "nestedDynaBean";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
 	}
 
 	/**
@@ -2004,13 +1997,6 @@ public class PropertyUtilsTestCase extends TestCase {
 		}
 		try {
 			property = "mappedProperty";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean";
 			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
 		} catch (final Throwable t) {
 			fail("Property " + property + " isWriteable Threw exception: " + t);
