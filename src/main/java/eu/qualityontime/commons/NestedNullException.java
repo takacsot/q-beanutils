@@ -18,17 +18,31 @@
 package eu.qualityontime.commons;
 
 /**
- * Converter implementation that throws a <code>PassTestException</code> when
- * convert is called. The idea is that catching this exception is a clear signal
- * that this method has been called.
+ * Thrown to indicate that the <em>Bean Access Language</em> cannot execute
+ * query against given bean since a nested bean referenced is null.
  *
+ * @since 1.7
  * @version $Id$
  */
 
-public class ThrowExceptionConverter implements Converter {
+public class NestedNullException extends BeanAccessLanguageException {
 
-	@Override
-	public <T> T convert(final Class<T> type, final Object value) {
-		throw new PassTestException();
+	// --------------------------------------------------------- Constuctors
+
+	/**
+	 * Constructs a <code>NestedNullException</code> without a detail message.
+	 */
+	public NestedNullException() {
+		super();
+	}
+
+	/**
+	 * Constructs a <code>NestedNullException</code> without a detail message.
+	 *
+	 * @param message
+	 *            the detail message explaining this exception
+	 */
+	public NestedNullException(final String message) {
+		super(message);
 	}
 }

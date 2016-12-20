@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.DynaBean;
-
 /**
  * General purpose test bean for JUnit tests for the "beanutils" component.
  *
@@ -399,15 +397,6 @@ public class TestBean implements Serializable {
 	/**
 	 * Another nested reference to another test bean,
 	 */
-	private DynaBean nestedDynaBean = null;
-
-	public DynaBean getNestedDynaBean() {
-		return nestedDynaBean;
-	}
-
-	public void setNestedDynaBean(final DynaBean nestedDynaBean) {
-		this.nestedDynaBean = nestedDynaBean;
-	}
 
 	/*
 	 * Another nested reference to a bean containing mapp properties

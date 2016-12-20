@@ -29,18 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.beanutils.BasicDynaBean;
-import org.apache.commons.beanutils.BasicDynaClass;
-import org.apache.commons.beanutils.BeanIntrospector;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.DefaultBeanIntrospector;
-import org.apache.commons.beanutils.DynaBean;
-import org.apache.commons.beanutils.DynaProperty;
-import org.apache.commons.beanutils.IntrospectionContext;
-import org.apache.commons.beanutils.MappedPropertyDescriptor;
-import org.apache.commons.beanutils.NestedNullException;
-import org.apache.commons.beanutils.PropertyUtilsBean;
-
 import eu.qualityontime.commons.priv.PrivateBeanFactory;
 import eu.qualityontime.commons.priv.PrivateDirect;
 import eu.qualityontime.commons.priv.PublicSubBean;
@@ -88,18 +76,18 @@ public class PropertyUtilsTestCase extends TestCase {
 	 * The fully qualified class name of our private directly implemented
 	 * interface.
 	 */
-	private static final String PRIVATE_DIRECT_CLASS = "org.apache.commons.beanutils.priv.PrivateDirect";
+	private static final String PRIVATE_DIRECT_CLASS = "eu.qualityontime.commons.priv.PrivateDirect";
 
 	/**
 	 * The fully qualified class name of our private indirectly implemented
 	 * interface.
 	 */
-	private static final String PRIVATE_INDIRECT_CLASS = "org.apache.commons.beanutils.priv.PrivateIndirect";
+	private static final String PRIVATE_INDIRECT_CLASS = "eu.qualityontime.commons.priv.PrivateIndirect";
 
 	/**
 	 * The fully qualified class name of our test bean class.
 	 */
-	private static final String TEST_BEAN_CLASS = "org.apache.commons.beanutils.TestBean";
+	private static final String TEST_BEAN_CLASS = "eu.qualityontime.commons.TestBean";
 
 	/**
 	 * The basic test bean for each test.
@@ -181,12 +169,6 @@ public class PropertyUtilsTestCase extends TestCase {
 		beanPrivateSubclass = PrivateBeanFactory.createSubclass();
 		beanPublicSubclass = new TestBeanPublicSubclass();
 
-		final DynaProperty[] properties = new DynaProperty[] { new DynaProperty("stringProperty", String.class),
-				new DynaProperty("nestedBean", TestBean.class), new DynaProperty("nullDynaBean", DynaBean.class) };
-		final BasicDynaClass dynaClass = new BasicDynaClass("nestedDynaBean", BasicDynaBean.class, properties);
-		final BasicDynaBean nestedDynaBean = new BasicDynaBean(dynaClass);
-		nestedDynaBean.set("nestedBean", bean);
-		bean.setNestedDynaBean(nestedDynaBean);
 		propertyUtils.clearDescriptors();
 	}
 
@@ -1550,25 +1532,6 @@ public class PropertyUtilsTestCase extends TestCase {
 
 			// Nested DynaBean
 			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean");
-			assertEquals("nestedDynaBean type", DynaBean.class, clazz);
-			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.stringProperty");
-			assertEquals("nestedDynaBean.stringProperty type", String.class, clazz);
-			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.nestedBean");
-			assertEquals("nestedDynaBean.nestedBean type", TestBean.class, clazz);
-			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.nestedBean.nestedDynaBean");
-			assertEquals("nestedDynaBean.nestedBean.nestedDynaBean type", DynaBean.class, clazz);
-			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.nestedBean.nestedDynaBean.stringProperty");
-			assertEquals("nestedDynaBean.nestedBean.nestedDynaBean.stringPropert type", String.class, clazz);
-
-			// test Null
-			clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.nullDynaBean");
-			assertEquals("nestedDynaBean.nullDynaBean type", DynaBean.class, clazz);
-			try {
-				clazz = propertyUtils.getPropertyType(bean, "nestedDynaBean.nullDynaBean.foo");
-				fail("Expected NestedNullException for nestedDynaBean.nullDynaBean.foo");
-			} catch (final NestedNullException e) {
-				// expected
-			}
 
 		} catch (final Exception e) {
 			fail("Exception: " + e.getMessage());
@@ -2020,50 +1983,6 @@ public class PropertyUtilsTestCase extends TestCase {
 			fail("Property " + property + " isReadable Threw exception: " + t);
 		}
 
-		try {
-			property = "nestedDynaBean.stringProperty";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean.nestedDynaBean";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean.nestedDynaBean.stringProperty";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nullDynaBean";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nullDynaBean.foo";
-			assertTrue("Property " + property + " isReadable expeced TRUE", propertyUtils.isReadable(bean, property));
-			fail("Property " + property + " isReadable expected NestedNullException");
-		} catch (final NestedNullException e) {
-			// expected result
-		} catch (final Throwable t) {
-			fail("Property " + property + " isReadable Threw exception: " + t);
-		}
 	}
 
 	/**
@@ -2097,51 +2016,6 @@ public class PropertyUtilsTestCase extends TestCase {
 			fail("Property " + property + " isWriteable Threw exception: " + t);
 		}
 
-		try {
-			property = "nestedDynaBean.stringProperty";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			t.printStackTrace();
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean.nestedDynaBean";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nestedBean.nestedDynaBean.stringProperty";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nullDynaBean";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
-
-		try {
-			property = "nestedDynaBean.nullDynaBean.foo";
-			assertTrue("Property " + property + " isWriteable expeced TRUE", propertyUtils.isWriteable(bean, property));
-			fail("Property " + property + " isWriteable expected NestedNullException");
-		} catch (final NestedNullException e) {
-			// expected result
-		} catch (final Throwable t) {
-			fail("Property " + property + " isWriteable Threw exception: " + t);
-		}
 	}
 
 	/**
@@ -3586,7 +3460,7 @@ public class PropertyUtilsTestCase extends TestCase {
 
 		assertNotNull("Descriptor is null", propertyUtils.getPropertyDescriptor(bean, "noGetterProperty"));
 
-		BeanUtils.setProperty(bean, "noGetterProperty", "Omega");
+		QPropertyUtils.setProperty(bean, "noGetterProperty", "Omega");
 		assertEquals("Cannot set no-getter property", "Omega", bean.getSecret());
 
 		// test mapped no getter descriptor
@@ -3799,9 +3673,7 @@ public class PropertyUtilsTestCase extends TestCase {
 	 * test
 	 */
 	public void testExceptionFromInvoke() throws Exception {
-		if (BeanUtilsTestCase.isPre14JVM()) {
-			return;
-		}
+
 		try {
 			propertyUtils.setSimpleProperty(bean, "intProperty", "XXX");
 		} catch (final IllegalArgumentException t) {

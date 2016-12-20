@@ -18,17 +18,34 @@
 package eu.qualityontime.commons;
 
 /**
- * Converter implementation that throws a <code>PassTestException</code> when
- * convert is called. The idea is that catching this exception is a clear signal
- * that this method has been called.
+ * Thrown to indicate that the <em>Bean Access Language</em> cannot execute
+ * query against given bean. This is a runtime exception and access langauges
+ * are encouraged to subclass to create custom exceptions whenever appropriate.
  *
+ * @since 1.7
  * @version $Id$
  */
 
-public class ThrowExceptionConverter implements Converter {
+public class BeanAccessLanguageException extends IllegalArgumentException {
 
-	@Override
-	public <T> T convert(final Class<T> type, final Object value) {
-		throw new PassTestException();
+	// --------------------------------------------------------- Constuctors
+
+	/**
+	 * Constructs a <code>BeanAccessLanguageException</code> without a detail
+	 * message.
+	 */
+	public BeanAccessLanguageException() {
+		super();
+	}
+
+	/**
+	 * Constructs a <code>BeanAccessLanguageException</code> without a detail
+	 * message.
+	 *
+	 * @param message
+	 *            the detail message explaining this exception
+	 */
+	public BeanAccessLanguageException(final String message) {
+		super(message);
 	}
 }

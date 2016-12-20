@@ -22,8 +22,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.beanutils.MethodUtils;
-
 /**
  * <p>
  * An internally used helper class for storing introspection information about a

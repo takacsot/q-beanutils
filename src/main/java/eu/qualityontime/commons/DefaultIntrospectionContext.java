@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.beanutils.IntrospectionContext;
-
 /**
  * <p>
  * An implementation of the {@code IntrospectionContext} interface used by
@@ -60,10 +58,12 @@ class DefaultIntrospectionContext implements IntrospectionContext {
 		descriptors = new HashMap<String, PropertyDescriptor>();
 	}
 
+	@Override
 	public Class<?> getTargetClass() {
 		return currentClass;
 	}
 
+	@Override
 	public void addPropertyDescriptor(final PropertyDescriptor desc) {
 		if (desc == null) {
 			throw new IllegalArgumentException("Property descriptor must not be null!");
@@ -71,6 +71,7 @@ class DefaultIntrospectionContext implements IntrospectionContext {
 		descriptors.put(desc.getName(), desc);
 	}
 
+	@Override
 	public void addPropertyDescriptors(final PropertyDescriptor[] descs) {
 		if (descs == null) {
 			throw new IllegalArgumentException("Array with descriptors must not be null!");
@@ -81,18 +82,22 @@ class DefaultIntrospectionContext implements IntrospectionContext {
 		}
 	}
 
+	@Override
 	public boolean hasProperty(final String name) {
 		return descriptors.containsKey(name);
 	}
 
+	@Override
 	public PropertyDescriptor getPropertyDescriptor(final String name) {
 		return descriptors.get(name);
 	}
 
+	@Override
 	public void removePropertyDescriptor(final String name) {
 		descriptors.remove(name);
 	}
 
+	@Override
 	public Set<String> propertyNames() {
 		return descriptors.keySet();
 	}

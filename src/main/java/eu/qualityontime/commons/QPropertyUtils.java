@@ -4,8 +4,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.apache.commons.beanutils.NestedNullException;
-
 @SuppressWarnings("rawtypes")
 public class QPropertyUtils {
 	private static QPropertyUtilsBean propertyUtils = new QPropertyUtilsBean();

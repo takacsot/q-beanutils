@@ -31,21 +31,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.beanutils.BeanIntrospector;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.DefaultBeanIntrospector;
-import org.apache.commons.beanutils.DynaBean;
-import org.apache.commons.beanutils.DynaProperty;
-import org.apache.commons.beanutils.MappedPropertyDescriptor;
-import org.apache.commons.beanutils.MethodUtils;
-import org.apache.commons.beanutils.NestedNullException;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.WrapDynaBean;
-import org.apache.commons.beanutils.expression.DefaultResolver;
-import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.collections.FastHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import eu.qualityontime.commons.expression.DefaultResolver;
+import eu.qualityontime.commons.expression.Resolver;
 
 /**
  * Utility methods for using Java Reflection APIs to facilitate generic property
@@ -94,7 +85,6 @@ import org.apache.commons.logging.LogFactory;
  *
  * @version $Id$
  * @see Resolver
- * @see PropertyUtils
  * @since 1.7
  */
 
@@ -115,7 +105,7 @@ public class QPropertyUtilsBean {
 	private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
 	/** Log instance */
-	private final Log log = LogFactory.getLog(PropertyUtils.class);
+	private final Log log = LogFactory.getLog(QPropertyUtils.class);
 
 	/** The list with BeanIntrospector objects. */
 	private final List<BeanIntrospector> introspectors;
@@ -283,37 +273,14 @@ public class QPropertyUtilsBean {
 			throw new IllegalArgumentException("No origin bean specified");
 		}
 
-		if (orig instanceof DynaBean) {
-			final DynaProperty[] origDescriptors = ((DynaBean) orig).getDynaClass().getDynaProperties();
-			for (final DynaProperty origDescriptor : origDescriptors) {
-				final String name = origDescriptor.getName();
-				if (isReadable(orig, name) && isWriteable(dest, name)) {
-					try {
-						final Object value = ((DynaBean) orig).get(name);
-						if (dest instanceof DynaBean) {
-							((DynaBean) dest).set(name, value);
-						} else {
-							setSimpleProperty(dest, name, value);
-						}
-					} catch (final NoSuchMethodException e) {
-						if (log.isDebugEnabled()) {
-							log.debug("Error writing to '" + name + "' on class '" + dest.getClass() + "'", e);
-						}
-					}
-				}
-			}
-		} else if (orig instanceof Map) {
+		if (orig instanceof Map) {
 			final Iterator<?> entries = ((Map<?, ?>) orig).entrySet().iterator();
 			while (entries.hasNext()) {
 				final Map.Entry<?, ?> entry = (Entry<?, ?>) entries.next();
 				final String name = (String) entry.getKey();
 				if (isWriteable(dest, name)) {
 					try {
-						if (dest instanceof DynaBean) {
-							((DynaBean) dest).set(name, entry.getValue());
-						} else {
-							setSimpleProperty(dest, name, entry.getValue());
-						}
+						setSimpleProperty(dest, name, entry.getValue());
 					} catch (final NoSuchMethodException e) {
 						if (log.isDebugEnabled()) {
 							log.debug("Error writing to '" + name + "' on class '" + dest.getClass() + "'", e);
@@ -328,9 +295,7 @@ public class QPropertyUtilsBean {
 				if (isReadable(orig, name) && isWriteable(dest, name)) {
 					try {
 						final Object value = getSimpleProperty(orig, name);
-						if (dest instanceof DynaBean) {
-							((DynaBean) dest).set(name, value);
-						} else {
+						{
 							setSimpleProperty(dest, name, value);
 						}
 					} catch (final NoSuchMethodException e) {
@@ -377,13 +342,7 @@ public class QPropertyUtilsBean {
 			throw new IllegalArgumentException("No bean specified");
 		}
 		final Map<String, Object> description = new HashMap<String, Object>();
-		if (bean instanceof DynaBean) {
-			final DynaProperty[] descriptors = ((DynaBean) bean).getDynaClass().getDynaProperties();
-			for (final DynaProperty descriptor : descriptors) {
-				final String name = descriptor.getName();
-				description.put(name, getProperty(bean, name));
-			}
-		} else {
+		{
 			final PropertyDescriptor[] descriptors = getPropertyDescriptors(bean);
 			for (final PropertyDescriptor descriptor : descriptors) {
 				final String name = descriptor.getName();
@@ -497,16 +456,6 @@ public class QPropertyUtilsBean {
 		}
 		if (name == null) {
 			throw new IllegalArgumentException("No name specified for bean class '" + bean.getClass() + "'");
-		}
-
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "' on bean class '" + bean.getClass() + "'");
-			}
-			return ((DynaBean) bean).get(name, index);
 		}
 
 		// Retrieve the property descriptor for the specified property
@@ -647,16 +596,6 @@ public class QPropertyUtilsBean {
 		if (key == null) {
 			throw new IllegalArgumentException(
 					"No key specified for property '" + name + "' on bean class " + bean.getClass() + "'");
-		}
-
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "'+ on bean class '" + bean.getClass() + "'");
-			}
-			return ((DynaBean) bean).get(name, key);
 		}
 
 		Object result = null;
@@ -1154,22 +1093,6 @@ public class QPropertyUtilsBean {
 		// Remove any subscript from the final name value
 		name = resolver.getProperty(name);
 
-		// Special handling for DynaBeans
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				return null;
-			}
-			final Class<?> type = descriptor.getType();
-			if (type == null) {
-				return null;
-			} else if (type.isArray()) {
-				return type.getComponentType();
-			} else {
-				return type;
-			}
-		}
-
 		final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
 		if (descriptor == null) {
 			return null;
@@ -1268,16 +1191,6 @@ public class QPropertyUtilsBean {
 					+ "' on bean class '" + bean.getClass() + "'");
 		}
 
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "' on dynaclass '" + ((DynaBean) bean).getDynaClass() + "'");
-			}
-			return ((DynaBean) bean).get(name);
-		}
-
 		// Retrieve the property getter method for the specified property
 		final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
 		if (descriptor == null) {
@@ -1352,7 +1265,7 @@ public class QPropertyUtilsBean {
 	 * <code>false</code>.
 	 *
 	 * @param bean
-	 *            Bean to be examined (may be a {@link DynaBean}
+	 *            Bean to be examined
 	 * @param name
 	 *            Property name to be evaluated
 	 * @return <code>true</code> if the property is readable, otherwise
@@ -1398,17 +1311,8 @@ public class QPropertyUtilsBean {
 		// Remove any subscript from the final name value
 		name = resolver.getProperty(name);
 
-		// Treat WrapDynaBean as special case - may be a write-only property
-		// (see Jira issue# BEANUTILS-61)
-		if (bean instanceof WrapDynaBean) {
-			bean = ((WrapDynaBean) bean).getInstance();
-		}
-
 		// Return the requested result
-		if (bean instanceof DynaBean) {
-			// All DynaBean properties are readable
-			return ((DynaBean) bean).getDynaClass().getDynaProperty(name) != null;
-		} else {
+		{
 			try {
 				final PropertyDescriptor desc = getPropertyDescriptor(bean, name);
 				if (desc != null) {
@@ -1443,7 +1347,7 @@ public class QPropertyUtilsBean {
 	 * <code>false</code>.
 	 *
 	 * @param bean
-	 *            Bean to be examined (may be a {@link DynaBean}
+	 *            Bean to be examined (may be a
 	 * @param name
 	 *            Property name to be evaluated
 	 * @return <code>true</code> if the property is writeable, otherwise
@@ -1489,17 +1393,7 @@ public class QPropertyUtilsBean {
 		// Remove any subscript from the final name value
 		name = resolver.getProperty(name);
 
-		// Treat WrapDynaBean as special case - may be a read-only property
-		// (see Jira issue# BEANUTILS-61)
-		if (bean instanceof WrapDynaBean) {
-			bean = ((WrapDynaBean) bean).getInstance();
-		}
-
-		// Return the requested result
-		if (bean instanceof DynaBean) {
-			// All DynaBean properties are writeable
-			return ((DynaBean) bean).getDynaClass().getDynaProperty(name) != null;
-		} else {
+		{
 			try {
 				final PropertyDescriptor desc = getPropertyDescriptor(bean, name);
 				if (desc != null) {
@@ -1633,17 +1527,6 @@ public class QPropertyUtilsBean {
 		}
 		if (name == null) {
 			throw new IllegalArgumentException("No name specified for bean class '" + bean.getClass() + "'");
-		}
-
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "' on bean class '" + bean.getClass() + "'");
-			}
-			((DynaBean) bean).set(name, index, value);
-			return;
 		}
 
 		// Retrieve the property descriptor for the specified property
@@ -1788,17 +1671,6 @@ public class QPropertyUtilsBean {
 		if (key == null) {
 			throw new IllegalArgumentException(
 					"No key specified for property '" + name + "' on bean class '" + bean.getClass() + "'");
-		}
-
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "' on bean class '" + bean.getClass() + "'");
-			}
-			((DynaBean) bean).set(name, key, value);
-			return;
 		}
 
 		// Retrieve the property descriptor for the specified property
@@ -2073,17 +1945,6 @@ public class QPropertyUtilsBean {
 					+ "' on bean class '" + bean.getClass() + "'");
 		}
 
-		// Handle DynaBean instances specially
-		if (bean instanceof DynaBean) {
-			final DynaProperty descriptor = ((DynaBean) bean).getDynaClass().getDynaProperty(name);
-			if (descriptor == null) {
-				throw new NoSuchMethodException(
-						"Unknown property '" + name + "' on dynaclass '" + ((DynaBean) bean).getDynaClass() + "'");
-			}
-			((DynaBean) bean).set(name, value);
-			return;
-		}
-
 		// Retrieve the property setter method for the specified property
 		final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
 		if (descriptor == null) {
@@ -2154,7 +2015,7 @@ public class QPropertyUtilsBean {
 							// https://issues.apache.org/jira/browse/BEANUTILS-224
 							+ " - had objects of type \"" + valueString + "\" but expected signature \""
 							+ expectedString + "\"");
-			if (!BeanUtils.initCause(e, cause)) {
+			if (!initCause(e, cause)) {
 				log.error("Method invocation failed", cause);
 			}
 			throw e;
@@ -2189,7 +2050,7 @@ public class QPropertyUtilsBean {
 							// https://issues.apache.org/jira/browse/BEANUTILS-224
 							+ " - had objects of type \"" + valueString + "\" but expected signature \""
 							+ expectedString + "\"");
-			if (!BeanUtils.initCause(e, cause)) {
+			if (!initCause(e, cause)) {
 				log.error("Method invocation failed", cause);
 			}
 			throw e;
@@ -2282,5 +2143,61 @@ public class QPropertyUtilsBean {
 		// mapped properties are stores in maps of type <String, Object>
 		Map<String, Object> map = (Map<String, Object>) obj;
 		return map;
+	}
+
+	/**
+	 * If we're running on JDK 1.4 or later, initialize the cause for the given
+	 * throwable.
+	 *
+	 * @param throwable
+	 *            The throwable.
+	 * @param cause
+	 *            The cause of the throwable.
+	 * @return true if the cause was initialized, otherwise false.
+	 * @since 1.8.0
+	 */
+	public boolean initCause(final Throwable throwable, final Throwable cause) {
+		if (INIT_CAUSE_METHOD != null && cause != null) {
+			try {
+				INIT_CAUSE_METHOD.invoke(throwable, new Object[] { cause });
+				return true;
+			} catch (final Throwable e) {
+				return false; // can't initialize cause
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A reference to Throwable's initCause method, or null if it's not there in
+	 * this JVM
+	 */
+	private static final Method INIT_CAUSE_METHOD = getInitCauseMethod();
+
+	/**
+	 * Returns a <code>Method<code> allowing access to
+	 * {@link Throwable#initCause(Throwable)} method of {@link Throwable},
+	 * or <code>null</code> if the method does not exist.
+	 *
+	 * @return A <code>Method<code> for <code>Throwable.initCause</code>, or
+	 *         <code>null</code> if unavailable.
+	 */
+	private static Method getInitCauseMethod() {
+		try {
+			final Class<?>[] paramsClasses = new Class<?>[] { Throwable.class };
+			return Throwable.class.getMethod("initCause", paramsClasses);
+		} catch (final NoSuchMethodException e) {
+			final Log log = LogFactory.getLog(QPropertyUtils.class);
+			if (log.isWarnEnabled()) {
+				log.warn("Throwable does not have initCause() method in JDK 1.3");
+			}
+			return null;
+		} catch (final Throwable e) {
+			final Log log = LogFactory.getLog(QPropertyUtils.class);
+			if (log.isWarnEnabled()) {
+				log.warn("Error getting the Throwable initCause() method", e);
+			}
+			return null;
+		}
 	}
 }
