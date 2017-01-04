@@ -127,7 +127,7 @@ public class PropertyUtilsTestCase extends TestCase {
 			// "readOnlyProperty",
 			"shortProperty", "stringArray",
 			// "stringIndexed",
-			"stringProperty" };
+	"stringProperty" };
 
 	/**
 	 * The set of property names we expect to have returned when calling
@@ -966,8 +966,10 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getMappedProperty(bean, "(Second Key)");
 			fail("Should throw IllegalArgumentException 5");
-		} catch (final NoSuchMethodException e) {
-			// Expected response
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchMethodException)) {
+				throw e;
+			}
 		} catch (final Throwable t) {
 			fail("Threw " + t + " instead of NoSuchMethodException 5");
 		}
@@ -1184,6 +1186,81 @@ public class PropertyUtilsTestCase extends TestCase {
 
 	}
 
+	public void testGetMappedValues_field() {
+
+		Object value = null;
+
+		// Use explicit key argument
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "@mappedProperty", "First Key");
+			assertEquals("Can find first value", "First Value", value);
+		} catch (final Throwable t) {
+			fail("Finding first value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "mappedProperty", "Second Key");
+			assertEquals("Can find second value", "Second Value", value);
+		} catch (final Throwable t) {
+			fail("Finding second value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "mappedProperty", "Third Key");
+			assertNull("Can not find third value", value);
+		} catch (final Throwable t) {
+			fail("Finding third value threw " + t);
+		}
+
+		// Use key expression with parentheses
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "mappedProperty(First Key)");
+			assertEquals("Can find first value", "First Value", value);
+		} catch (final Throwable t) {
+			fail("Finding first value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "mappedProperty(Second Key)");
+			assertEquals("Can find second value", "Second Value", value);
+		} catch (final Throwable t) {
+			fail("Finding second value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getMappedProperty(bean, "mappedProperty(Third Key)");
+			assertNull("Can not find third value", value);
+		} catch (final Throwable t) {
+			fail("Finding third value threw " + t);
+		}
+
+		// Use key expression with dotted syntax
+
+		try {
+			value = propertyUtils.getNestedProperty(bean, "mapProperty.First Key");
+			assertEquals("Can find first value", "First Value", value);
+		} catch (final Throwable t) {
+			fail("Finding first value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getNestedProperty(bean, "mapProperty.Second Key");
+			assertEquals("Can find second value", "Second Value", value);
+		} catch (final Throwable t) {
+			fail("Finding second value threw " + t);
+		}
+
+		try {
+			value = propertyUtils.getNestedProperty(bean, "mapProperty.Third Key");
+			assertNull("Can not find third value", value);
+		} catch (final Throwable t) {
+			fail("Finding third value threw " + t);
+		}
+
+	}
+
 	/**
 	 * Corner cases on getNestedProperty invalid arguments.
 	 */
@@ -1214,21 +1291,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedBoolean() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.booleanProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Boolean);
-			assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getNested().getBooleanProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
-
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.booleanProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Boolean);
+		assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getNested().getBooleanProperty());
 	}
 
 	/**
@@ -1236,21 +1302,11 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedDouble() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.doubleProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Double);
-			assertEquals("Got correct value", ((Double) value).doubleValue(), bean.getNested().getDoubleProperty(),
-					0.005);
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.doubleProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Double);
+		assertEquals("Got correct value", ((Double) value).doubleValue(), bean.getNested().getDoubleProperty(),
+				0.005);
 
 	}
 
@@ -1259,21 +1315,11 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedFloat() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.floatProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Float);
-			assertEquals("Got correct value", ((Float) value).floatValue(), bean.getNested().getFloatProperty(),
-					(float) 0.005);
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.floatProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Float);
+		assertEquals("Got correct value", ((Float) value).floatValue(), bean.getNested().getFloatProperty(),
+				(float) 0.005);
 
 	}
 
@@ -1282,20 +1328,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedInt() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.intProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Integer);
-			assertEquals("Got correct value", ((Integer) value).intValue(), bean.getNested().getIntProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.intProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Integer);
+		assertEquals("Got correct value", ((Integer) value).intValue(), bean.getNested().getIntProperty());
 
 	}
 
@@ -1304,20 +1340,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedLong() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.longProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Long);
-			assertEquals("Got correct value", ((Long) value).longValue(), bean.getNested().getLongProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.longProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Long);
+		assertEquals("Got correct value", ((Long) value).longValue(), bean.getNested().getLongProperty());
 
 	}
 
@@ -1326,20 +1352,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedReadOnly() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.readOnlyProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof String);
-			assertEquals("Got correct value", (String) value, bean.getReadOnlyProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.readOnlyProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof String);
+		assertEquals("Got correct value", (String) value, bean.getReadOnlyProperty());
 
 	}
 
@@ -1348,21 +1364,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedShort() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.shortProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Short);
-			assertEquals("Got correct value", ((Short) value).shortValue(), bean.getNested().getShortProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
-
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.shortProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Short);
+		assertEquals("Got correct value", ((Short) value).shortValue(), bean.getNested().getShortProperty());
 	}
 
 	/**
@@ -1370,20 +1375,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetNestedString() {
 
-		try {
-			final Object value = propertyUtils.getNestedProperty(bean, "nested.stringProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof String);
-			assertEquals("Got correct value", (String) value, bean.getNested().getStringProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getNestedProperty(bean, "nested.stringProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof String);
+		assertEquals("Got correct value", (String) value, bean.getNested().getStringProperty());
 
 	}
 
@@ -1395,14 +1390,10 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getNestedProperty(bean, "nested.unknown");
 			fail("Should have thrown NoSuchMethodException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			// Correct result for this test
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchMethodException)) {
+				throw e;
+			}
 		}
 
 	}
@@ -1431,14 +1422,10 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getNestedProperty(bean, "writeOnlyProperty");
 			fail("Should have thrown NoSuchMethodException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			// Correct result for this test
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchMethodException)) {
+				throw e;
+			}
 		}
 
 	}
@@ -1676,37 +1663,17 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleBoolean() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "booleanProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Boolean);
-			assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "booleanProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Boolean);
+		assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
 	}
 
-	public void testGetSimpleBoolean_field() {
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "@booleanProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Boolean);
-			assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+	public void testGetSimpleBoolean_field() throws Exception {
+		final Object value = propertyUtils.getSimpleProperty(bean, "@booleanProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Boolean);
+		assertTrue("Got correct value", ((Boolean) value).booleanValue() == bean.getBooleanProperty());
 
 	}
 
@@ -1715,20 +1682,19 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleDouble() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "doubleProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Double);
-			assertEquals("Got correct value", ((Double) value).doubleValue(), bean.getDoubleProperty(), 0.005);
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "doubleProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Double);
+		assertEquals("Got correct value", ((Double) value).doubleValue(), bean.getDoubleProperty(), 0.005);
+
+	}
+
+	public void testGetSimpleDouble_field() {
+
+		final Object value = propertyUtils.getSimpleProperty(bean, "@doubleProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Double);
+		assertEquals("Got correct value", ((Double) value).doubleValue(), bean.getDoubleProperty(), 0.005);
 
 	}
 
@@ -1737,20 +1703,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleFloat() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "floatProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Float);
-			assertEquals("Got correct value", ((Float) value).floatValue(), bean.getFloatProperty(), (float) 0.005);
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "floatProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Float);
+		assertEquals("Got correct value", ((Float) value).floatValue(), bean.getFloatProperty(), (float) 0.005);
 
 	}
 
@@ -1762,14 +1718,7 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getSimpleProperty(bean, "intIndexed[0]");
 			fail("Should have thrown IllegalArgumentException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
 		} catch (final IllegalArgumentException e) {
-			// Correct result for this test
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
 		}
 
 	}
@@ -1779,20 +1728,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleInt() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "intProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Integer);
-			assertEquals("Got correct value", ((Integer) value).intValue(), bean.getIntProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "intProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Integer);
+		assertEquals("Got correct value", ((Integer) value).intValue(), bean.getIntProperty());
 
 	}
 
@@ -1801,20 +1740,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleLong() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "longProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Long);
-			assertEquals("Got correct value", ((Long) value).longValue(), bean.getLongProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "longProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Long);
+		assertEquals("Got correct value", ((Long) value).longValue(), bean.getLongProperty());
 
 	}
 
@@ -1826,14 +1755,17 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getSimpleProperty(bean, "nested.stringProperty");
 			fail("Should have thrown IllegaArgumentException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
 		} catch (final IllegalArgumentException e) {
-			// Correct result for this test
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
+		}
+
+	}
+
+	public void testGetSimpleNested_field() {
+
+		try {
+			propertyUtils.getSimpleProperty(bean, "@nested.stringProperty");
+			fail("Should have thrown IllegaArgumentException");
+		} catch (final IllegalArgumentException e) {
 		}
 
 	}
@@ -1843,20 +1775,19 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleReadOnly() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "readOnlyProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof String);
-			assertEquals("Got correct value", (String) value, bean.getReadOnlyProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "readOnlyProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof String);
+		assertEquals("Got correct value", (String) value, bean.getReadOnlyProperty());
+
+	}
+
+	public void testGetSimpleReadOnly_field() {
+
+		final Object value = propertyUtils.getSimpleProperty(bean, "@readOnlyProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof String);
+		assertEquals("Got correct value", (String) value, bean.getReadOnlyProperty());
 
 	}
 
@@ -1865,20 +1796,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleShort() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "shortProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof Short);
-			assertEquals("Got correct value", ((Short) value).shortValue(), bean.getShortProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
+		final Object value = propertyUtils.getSimpleProperty(bean, "shortProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof Short);
+		assertEquals("Got correct value", ((Short) value).shortValue(), bean.getShortProperty());
 
 	}
 
@@ -1887,21 +1808,10 @@ public class PropertyUtilsTestCase extends TestCase {
 	 */
 	public void testGetSimpleString() {
 
-		try {
-			final Object value = propertyUtils.getSimpleProperty(bean, "stringProperty");
-			assertNotNull("Got a value", value);
-			assertTrue("Got correct type", value instanceof String);
-			assertEquals("Got correct value", (String) value, bean.getStringProperty());
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			fail("NoSuchMethodException");
-		}
-
+		final Object value = propertyUtils.getSimpleProperty(bean, "stringProperty");
+		assertNotNull("Got a value", value);
+		assertTrue("Got correct type", value instanceof String);
+		assertEquals("Got correct value", (String) value, bean.getStringProperty());
 	}
 
 	/**
@@ -1912,15 +1822,23 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getSimpleProperty(bean, "unknown");
 			fail("Should have thrown NoSuchMethodException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			// Correct result for this test
-			assertEquals("Unknown property 'unknown' on class '" + bean.getClass() + "'", e.getMessage());
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchMethodException)) {
+				throw e;
+			}
+		}
+
+	}
+
+	public void testGetSimpleUnknown_field() {
+
+		try {
+			propertyUtils.getSimpleProperty(bean, "@unknown");
+			fail("Should have thrown NoSuchMethodException");
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchFieldException)) {
+				throw e;
+			}
 		}
 
 	}
@@ -1933,16 +1851,10 @@ public class PropertyUtilsTestCase extends TestCase {
 		try {
 			propertyUtils.getSimpleProperty(bean, "writeOnlyProperty");
 			fail("Should have thrown NoSuchMethodException");
-		} catch (final IllegalAccessException e) {
-			fail("IllegalAccessException");
-		} catch (final IllegalArgumentException e) {
-			fail("IllegalArgumentException");
-		} catch (final InvocationTargetException e) {
-			fail("InvocationTargetException");
-		} catch (final NoSuchMethodException e) {
-			// Correct result for this test
-			assertEquals("Property 'writeOnlyProperty' has no getter method in class '" + bean.getClass() + "'",
-					e.getMessage());
+		} catch (final RuntimeException e) {
+			if (!(e.getCause() instanceof NoSuchMethodException)) {
+				throw e;
+			}
 		}
 
 	}

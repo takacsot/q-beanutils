@@ -22,6 +22,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -584,8 +585,17 @@ public class QPropertyUtilsBean {
 	 * @throws NoSuchMethodException
 	 *             if an accessor method for this propety cannot be found
 	 */
-	public Object getMappedProperty(final Object bean, final String name, final String key)
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public Object getMappedProperty(final Object bean, final String name, final String key) {
+		try {
+			return _getMappedProperty(bean, name, key);
+		} catch (final RuntimeException e) {
+			throw e;
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Object _getMappedProperty(final Object bean, final String name, final String key) throws Exception {
 
 		if (bean == null) {
 			throw new IllegalArgumentException("No bean specified");
@@ -708,8 +718,17 @@ public class QPropertyUtilsBean {
 	 * @throws NoSuchMethodException
 	 *             if an accessor method for this propety cannot be found
 	 */
-	public Object getNestedProperty(Object bean, String name)
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public Object getNestedProperty(final Object bean, final String name) {
+		try {
+			return _getNestedProperty(bean, name);
+		} catch (final RuntimeException e) {
+			throw e;
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Object _getNestedProperty(Object bean, String name) throws Exception {
 
 		if (bean == null) {
 			throw new IllegalArgumentException("No bean specified");
@@ -820,8 +839,17 @@ public class QPropertyUtilsBean {
 	 * @throws NoSuchMethodException
 	 *             if an accessor method for this propety cannot be found
 	 */
-	public Object getProperty(final Object bean, final String name)
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public Object getProperty(final Object bean, final String name) {
+		try {
+			return _getProperty(bean, name);
+		} catch (final RuntimeException e) {
+			throw e;
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Object _getProperty(final Object bean, final String name) throws Exception {
 
 		return getNestedProperty(bean, name);
 
@@ -1169,8 +1197,17 @@ public class QPropertyUtilsBean {
 	 * @throws NoSuchMethodException
 	 *             if an accessor method for this propety cannot be found
 	 */
-	public Object getSimpleProperty(final Object bean, final String name)
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public Object getSimpleProperty(final Object bean, final String name) {
+		try {
+			return _getSimpleProperty(bean, name);
+		} catch (final RuntimeException e) {
+			throw e;
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Object _getSimpleProperty(final Object bean, final String name) throws Exception {
 
 		if (bean == null) {
 			throw new IllegalArgumentException("No bean specified");
@@ -1191,20 +1228,30 @@ public class QPropertyUtilsBean {
 					+ "' on bean class '" + bean.getClass() + "'");
 		}
 
-		// Retrieve the property getter method for the specified property
-		final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
-		if (descriptor == null) {
-			throw new NoSuchMethodException("Unknown property '" + name + "' on class '" + bean.getClass() + "'");
-		}
-		final Method readMethod = getReadMethod(bean.getClass(), descriptor);
-		if (readMethod == null) {
-			throw new NoSuchMethodException(
-					"Property '" + name + "' has no getter method in class '" + bean.getClass() + "'");
-		}
+		if (name.startsWith("@")) {
+			final String fieldName = name.substring(1);
+			final Field f = FieldUtils.findField(bean.getClass(), fieldName);
+			if (null == f) {
+				throw new NoSuchFieldException("field `"+fieldName+"` not found");
+			}
+			f.setAccessible(true);
+			return f.get(bean);
+		} else {
+			// Retrieve the property getter method for the specified property
+			final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
+			if (descriptor == null) {
+				throw new NoSuchMethodException("Unknown property '" + name + "' on class '" + bean.getClass() + "'");
+			}
+			final Method readMethod = getReadMethod(bean.getClass(), descriptor);
+			if (readMethod == null) {
+				throw new NoSuchMethodException(
+						"Property '" + name + "' has no getter method in class '" + bean.getClass() + "'");
+			}
 
-		// Call the property getter and return the value
-		final Object value = invokeMethod(readMethod, bean, EMPTY_OBJECT_ARRAY);
-		return value;
+			// Call the property getter and return the value
+			final Object value = invokeMethod(readMethod, bean, EMPTY_OBJECT_ARRAY);
+			return value;
+		}
 
 	}
 
@@ -1293,11 +1340,7 @@ public class QPropertyUtilsBean {
 			Object nestedBean = null;
 			try {
 				nestedBean = getProperty(bean, next);
-			} catch (final IllegalAccessException e) {
-				return false;
-			} catch (final InvocationTargetException e) {
-				return false;
-			} catch (final NoSuchMethodException e) {
+			} catch (final Exception e) {
 				return false;
 			}
 			if (nestedBean == null) {
@@ -1375,11 +1418,7 @@ public class QPropertyUtilsBean {
 			Object nestedBean = null;
 			try {
 				nestedBean = getProperty(bean, next);
-			} catch (final IllegalAccessException e) {
-				return false;
-			} catch (final InvocationTargetException e) {
-				return false;
-			} catch (final NoSuchMethodException e) {
+			} catch (final Exception e) {
 				return false;
 			}
 			if (nestedBean == null) {
@@ -1894,7 +1933,7 @@ public class QPropertyUtilsBean {
 	 *             if an accessor method for this propety cannot be found
 	 */
 	public void setProperty(final Object bean, final String name, final Object value)
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
 
 		setNestedProperty(bean, name, value);
 
@@ -2010,11 +2049,11 @@ public class QPropertyUtilsBean {
 			}
 			final IllegalArgumentException e = new IllegalArgumentException(
 					"Cannot invoke " + method.getDeclaringClass().getName() + "." + method.getName()
-							+ " on bean class '" + bean.getClass() + "' - " + cause.getMessage()
-							// as per
-							// https://issues.apache.org/jira/browse/BEANUTILS-224
-							+ " - had objects of type \"" + valueString + "\" but expected signature \""
-							+ expectedString + "\"");
+					+ " on bean class '" + bean.getClass() + "' - " + cause.getMessage()
+					// as per
+					// https://issues.apache.org/jira/browse/BEANUTILS-224
+					+ " - had objects of type \"" + valueString + "\" but expected signature \""
+					+ expectedString + "\"");
 			if (!initCause(e, cause)) {
 				log.error("Method invocation failed", cause);
 			}
@@ -2045,11 +2084,11 @@ public class QPropertyUtilsBean {
 			}
 			final IllegalArgumentException e = new IllegalArgumentException(
 					"Cannot invoke " + method.getDeclaringClass().getName() + "." + method.getName()
-							+ " on bean class '" + bean.getClass() + "' - " + cause.getMessage()
-							// as per
-							// https://issues.apache.org/jira/browse/BEANUTILS-224
-							+ " - had objects of type \"" + valueString + "\" but expected signature \""
-							+ expectedString + "\"");
+					+ " on bean class '" + bean.getClass() + "' - " + cause.getMessage()
+					// as per
+					// https://issues.apache.org/jira/browse/BEANUTILS-224
+					+ " - had objects of type \"" + valueString + "\" but expected signature \""
+					+ expectedString + "\"");
 			if (!initCause(e, cause)) {
 				log.error("Method invocation failed", cause);
 			}
