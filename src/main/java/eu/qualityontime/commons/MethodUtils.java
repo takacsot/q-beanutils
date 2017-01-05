@@ -25,7 +25,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
