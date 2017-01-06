@@ -1966,10 +1966,10 @@ public class QPropertyUtilsBean {
         nestedBean = getMappedProperty(bean, next);
       }
       else if (resolver.isIndexed(next)) {
-        nestedBean = getIndexedProperty(bean, next);
+        nestedBean = _getIndexedProperty(bean, next);
       }
       else {
-        nestedBean = getSimpleProperty(bean, next);
+        nestedBean = _getSimpleProperty(bean, next);
       }
       if (nestedBean == null) {
         throw new NestedNullException(
@@ -2159,6 +2159,10 @@ public class QPropertyUtilsBean {
           + "' on bean class '" + bean.getClass() + "'");
     }
 
+    if (name.startsWith("@")) {
+      FieldUtils.writeField(bean, name.substring(1), value);
+      return;
+    }
     // Retrieve the property setter method for the specified property
     final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
     if (descriptor == null) {

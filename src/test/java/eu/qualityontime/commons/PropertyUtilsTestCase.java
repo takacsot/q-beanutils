@@ -3104,6 +3104,14 @@ public class PropertyUtilsTestCase extends TestCase {
       // Correct result for this test
     }
 
+    try {
+      final String newValue = "New String Value";
+      propertyUtils._setNestedProperty(bean, "@nested.@unknown", newValue);
+      fail("Should have thrown NoSuchMethodException");
+    } catch (final NoSuchFieldException e) {
+      // Correct result for this test
+    }
+
   }
 
   /**
@@ -3147,9 +3155,14 @@ public class PropertyUtilsTestCase extends TestCase {
    */
   public void testSetSimpleBoolean() {
 
-    final boolean oldValue = bean.getBooleanProperty();
-    final boolean newValue = !oldValue;
+    boolean oldValue = bean.getBooleanProperty();
+    boolean newValue = !oldValue;
     propertyUtils.setSimpleProperty(bean, "booleanProperty", new Boolean(newValue));
+    assertTrue("Matched new value", newValue == bean.getBooleanProperty());
+
+    oldValue = bean.getBooleanProperty();
+    newValue = !oldValue;
+    propertyUtils.setSimpleProperty(bean, "@booleanProperty", new Boolean(newValue));
     assertTrue("Matched new value", newValue == bean.getBooleanProperty());
 
   }
@@ -3462,6 +3475,8 @@ public class PropertyUtilsTestCase extends TestCase {
     value = (NestedTestBean) propertyUtils.getProperty(nestedBean, "indexedProperty[0]");
     assertEquals("Cannot get simple index(1)", "Bean@0", value.getName());
     assertEquals("Bug in NestedTestBean", "NOT SET", value.getTestString());
+    value = (NestedTestBean) propertyUtils.getProperty(nestedBean, "@indexedBeans[0]");
+    assertEquals("Cannot get simple index(1)", "Bean@0", value.getName());
 
     value = (NestedTestBean) propertyUtils.getProperty(nestedBean, "indexedProperty[1]");
     assertEquals("Cannot get simple index(1)", "Bean@1", value.getName());
@@ -3471,6 +3486,8 @@ public class PropertyUtilsTestCase extends TestCase {
     assertEquals("Get property on indexes failed (1)", "NOT SET", prop);
 
     prop = (String) propertyUtils.getProperty(nestedBean, "indexedProperty[1].testString");
+    assertEquals("Get property on indexes failed (2)", "NOT SET", prop);
+    prop = (String) propertyUtils.getProperty(nestedBean, "indexedProperty[1].@testString");
     assertEquals("Get property on indexes failed (2)", "NOT SET", prop);
 
     propertyUtils.setProperty(nestedBean, "indexedProperty[0].testString", "Test#1");
