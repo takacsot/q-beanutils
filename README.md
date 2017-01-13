@@ -10,5 +10,8 @@ Plan:
 3.2 copy properties map to field
 3.3 copy properties obj from field/attr to field/attr
 4. Make it working with non public beans.
-5. Add null attribute access. Example: `attr1?.attr2`
+5. [Done] Add null attribute access. Example: `attr1?.attr2`
 6. Add collection accessors. Example. Taken `attr1` as a `List` expression `attr1.attr2` gets all the attr2 values in collection. 
+
+Nullable attribute access has a limitation. 
+When the attribute is accesse like `getIndexedProp(int index)` then the underlying method must take care of nullability.

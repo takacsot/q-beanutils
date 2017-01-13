@@ -63,11 +63,9 @@ import junit.framework.TestSuite;
  * <li>setNestedProperty(Object,String,Object)</li>
  * <li>setSimpleProperty(Object,String,Object)</li>
  * </ul>
- *
- * @version $Id$
  */
 
-public class PropertyUtilsTestCase extends TestCase {
+public class QPropertyUtilsBeanTest extends TestCase {
 
   // ---------------------------------------------------- Instance Variables
 
@@ -146,7 +144,7 @@ public class PropertyUtilsTestCase extends TestCase {
    * @param name
    *            Name of the test case
    */
-  public PropertyUtilsTestCase(final String name) {
+  public QPropertyUtilsBeanTest(final String name) {
 
     super(name);
 
@@ -176,7 +174,7 @@ public class PropertyUtilsTestCase extends TestCase {
    */
   public static Test suite() {
 
-    return new TestSuite(PropertyUtilsTestCase.class);
+    return new TestSuite(QPropertyUtilsBeanTest.class);
 
   }
 
@@ -1199,26 +1197,6 @@ public class PropertyUtilsTestCase extends TestCase {
       // Expected response
     } catch (final Throwable t) {
       fail("Threw " + t + " instead of IllegalArgumentException 4");
-    }
-
-    try {
-      propertyUtils.getMappedProperty(bean, "(Second Key)");
-      fail("Should throw IllegalArgumentException 5");
-    } catch (final RuntimeException e) {
-      if (!(e.getCause() instanceof NoSuchMethodException)) {
-        throw e;
-      }
-    } catch (final Throwable t) {
-      fail("Threw " + t + " instead of NoSuchMethodException 5");
-    }
-
-    try {
-      propertyUtils.getMappedProperty(bean, "mappedProperty");
-      fail("Should throw IllegalArgumentException 6");
-    } catch (final IllegalArgumentException e) {
-      // Expected response
-    } catch (final Throwable t) {
-      fail("Threw " + t + " instead of IllegalArgumentException 6");
     }
 
   }

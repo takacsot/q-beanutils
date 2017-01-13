@@ -490,16 +490,20 @@ public class QPropertyUtilsBean {
     }
 
     if (name.startsWith("@")) {
-      Object f = FieldUtils.readField(bean, name.substring(1));
-      if (null == f)
-        throw new NestedNullException();
+      Object f = FieldUtils.readField(bean, trimAnnotations(name));
+      if (null == f) {
+        if (name.endsWith("?"))
+          return null;
+        else
+          throw new NestedNullException();
+      }
       if (f.getClass().isArray())
         return Array.get(f, index);
       else if (f instanceof List)
         return ((List<?>) f).get(index);
     }
     // Retrieve the property descriptor for the specified property
-    final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
+    final PropertyDescriptor descriptor = getPropertyDescriptor(bean, trimAnnotations(name));
     if (descriptor == null) {
       throw new NoSuchMethodException("Unknown property '" + name + "' on bean class '" + bean.getClass() + "'");
     }
@@ -533,6 +537,8 @@ public class QPropertyUtilsBean {
 
     // Call the property getter and return the value
     final Object value = invokeMethod(readMethod, bean, EMPTY_OBJECT_ARRAY);
+    if (null == value && name.endsWith("?"))
+      return null;
     if (!value.getClass().isArray()) {
       if (!(value instanceof java.util.List)) {
         throw new IllegalArgumentException(
@@ -576,9 +582,11 @@ public class QPropertyUtilsBean {
    * @throws NoSuchMethodException
    *             if an accessor method for this propety cannot be found
    */
-  public Object getMappedProperty(final Object bean, String name)
-      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  public Object getMappedProperty(final Object bean, String name) throws Exception {
+    return _getMappedProperty(bean, name);
+  }
 
+  public Object _getMappedProperty(final Object bean, String name) throws Exception {
     if (bean == null) {
       throw new IllegalArgumentException("No bean specified");
     }
@@ -603,7 +611,7 @@ public class QPropertyUtilsBean {
     name = resolver.getProperty(name);
 
     // Request the specified indexed property value
-    return getMappedProperty(bean, name, key);
+    return _getMappedProperty(bean, name, key);
 
   }
 
@@ -653,9 +661,13 @@ public class QPropertyUtilsBean {
     Object result = null;
 
     if (name.startsWith("@")) {
-      Object invokeResult = FieldUtils.readField(bean, name.substring(1));
-      if (null == invokeResult)
-        throw new NestedNullException();
+      Object invokeResult = FieldUtils.readField(bean, trimAnnotations(name));
+      if (null == invokeResult) {
+        if (name.endsWith("?"))
+          return null;
+        else
+          throw new NestedNullException();
+      }
       if (invokeResult instanceof java.util.Map) {
         return ((java.util.Map<?, ?>) invokeResult).get(key);
       }
@@ -663,7 +675,7 @@ public class QPropertyUtilsBean {
         throw new NoSuchFieldException("Field '" + name + "' is not mapped in '" + bean.getClass() + "'");
     }
     // Retrieve the property descriptor for the specified property
-    final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
+    final PropertyDescriptor descriptor = getPropertyDescriptor(bean, trimAnnotations(name));
     if (descriptor == null) {
       throw new NoSuchMethodException("Unknown property '" + name + "'+ on bean class '" + bean.getClass() + "'");
     }
@@ -698,6 +710,17 @@ public class QPropertyUtilsBean {
     }
     return result;
 
+  }
+
+  /**
+   * Trimming annotations fromt he beggining or the end of the attribute/field name
+   */
+  private String trimAnnotations(String name) {
+    if (name.startsWith("@"))
+      name = name.substring(1);
+    if (name.endsWith("?"))
+      name = name.substring(0, name.length() - 1);
+    return name;
   }
 
   /**
@@ -802,14 +825,27 @@ public class QPropertyUtilsBean {
         nestedBean = getMappedProperty(bean, next);
       }
       else if (resolver.isIndexed(next)) {
-        nestedBean = getIndexedProperty(bean, next);
+        nestedBean = _getIndexedProperty(bean, next);
       }
       else {
         nestedBean = _getSimpleProperty(bean, next);
       }
       if (nestedBean == null) {
-        throw new NestedNullException(
-            "Null property value for '" + name + "' on bean class '" + bean.getClass() + "'");
+        if (resolver.isMapped(next)) {
+          String prop = resolver.getProperty(next);
+          if (prop.endsWith("?"))
+            return null;
+        }
+        else if (resolver.isIndexed(next)) {
+          String prop = resolver.getProperty(next);
+          if (prop.endsWith("?"))
+            return null;
+        }
+        if (next.endsWith("?"))
+          return null;
+        else
+          throw new NestedNullException(
+              "Null property value for '" + name + "' on bean class '" + bean.getClass() + "'");
       }
       bean = nestedBean;
       name = resolver.remove(name);
@@ -901,7 +937,7 @@ public class QPropertyUtilsBean {
    */
   public Object getProperty(final Object bean, final String name) {
     try {
-      return _getProperty(bean, name);
+      return _getNestedProperty(bean, name);
     } catch (final RuntimeException e) {
       throw e;
     } catch (final Exception e) {
@@ -1295,7 +1331,7 @@ public class QPropertyUtilsBean {
     }
 
     if (name.startsWith("@")) {
-      final String fieldName = name.substring(1);
+      final String fieldName = trimAnnotations(name);
       final Field f = FieldUtils.findField(bean.getClass(), fieldName);
       if (null == f) {
         throw new NoSuchFieldException("field `" + fieldName + "` not found");
@@ -1305,7 +1341,7 @@ public class QPropertyUtilsBean {
     }
     else {
       // Retrieve the property getter method for the specified property
-      final PropertyDescriptor descriptor = getPropertyDescriptor(bean, name);
+      final PropertyDescriptor descriptor = getPropertyDescriptor(bean, trimAnnotations(name));
       if (descriptor == null) {
         throw new NoSuchMethodException("Unknown property '" + name + "' on class '" + bean.getClass() + "'");
       }
