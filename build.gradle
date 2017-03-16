@@ -21,11 +21,8 @@ repositories {
 }
 
 dependencies {
-	compile 'org.apache.commons:commons-lang3:3.1'
 	compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
 	compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
-	testCompile group: 'com.google.guava', name: 'guava', version: '20.0'
-	testCompile 'org.mockito:mockito-all:1.9.0'
 	testCompile 'de.bechte.junit:junit-hierarchicalcontextrunner:4.11.3'
 }
 
@@ -49,52 +46,7 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-//signing {
-//    sign configurations.archives
-//}
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: ossrhUsername, password: ossrhPassword)
-      }
-
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: ossrhUsername, password: ossrhPassword)
-      }
-
-      pom.project {
-        name 'Example Application'
-        packaging 'jar'
-        // optionally artifactId can be defined here 
-        description 'A application used as an example on how to set up 
-          pushing  its components to the Central Repository.'
-        url 'http://www.example.com/example-application'
-
-        scm {
-          connection 'scm:svn:http://foo.googlecode.com/svn/trunk/'
-          developerConnection 'scm:svn:https://foo.googlecode.com/svn/trunk/'
-          url 'http://foo.googlecode.com/svn/trunk/'
-        }
-
-        licenses {
-          license {
-            name 'The Apache License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-          }
-        }
-
-        developers {
-          developer {
-            id 'takacsot'
-            name 'Ottó Takács'
-            email 'manfred@sonatype.com'
-          }
-        }
-      }
-    }
-  }
+signing {
+    sign configurations.archives
 }
+
