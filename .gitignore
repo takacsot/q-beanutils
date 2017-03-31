@@ -16,3 +16,8 @@ gradle-app.setting
 .classpath
 .project
 .settings
+/gradle.properties
+/otto-private.gpg
+/otto-private.txt
+/otto-public.gpg
+/otto-public.txt
