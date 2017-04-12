@@ -15,3 +15,6 @@ Plan:
 
 Nullable attribute access has a limitation. 
 When the attribute is accesse like `getIndexedProp(int index)` then the underlying method must take care of nullability.
+
+As `QPropertyUtils` is behaving like commona PropertyUtils most behaviours are the same (http://commons.apache.org/proper/commons-beanutils/javadocs/v1.9.3/apidocs/org/apache/commons/beanutils/package-summary.html)
+
