@@ -1,6 +1,14 @@
 # q-beanutils
 Jakarta commons-beanutils PropertyUtils replacement.
 
+Install:
+
+	<dependency>
+			<groupId>eu.qualityontime.commons</groupId>
+			<artifactId>q-beanutils</artifactId>
+			<version>0.8</version>
+	</dependency>
+
 Plan:
 
 1. [Done] Wrap of Jakarta commons PropertyUtils to avoid checked excecptions and adding some generics friendly method.
